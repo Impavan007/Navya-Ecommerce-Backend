@@ -342,3 +342,116 @@ export const getadminPayouts = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Admin list all listings: GET /api/v1/admin/listings
+export const getadminListings = async (req: Request, res: Response) => {
+  try {
+    const { status, category, brand, search, page = 1, limit = 10 } = req.query;
+    const query: any = {};
+
+    if (status && status !== 'all' && status !== 'All Status') query.status = status;
+    if (category && category !== 'all') query.category = category;
+    if (brand && brand !== 'all') query.brand = brand;
+
+    if (search) {
+      query.name = { $regex: String(search), $options: 'i' };
+    }
+
+    const skipIndex = (Number(page) - 1) * Number(limit);
+    const totalItems = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .populate('category')
+      .populate('lender', 'name email profile_image')
+      .skip(skipIndex)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    const totalPages = Math.ceil(totalItems / Number(limit));
+
+    // Dynamic stats summary for statuses across all products
+    const rawCounts = await Product.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    const statusCounts: any = { all: totalItems, active: 0, pending: 0, draft: 0, inactive: 0 };
+    rawCounts.forEach((rc) => {
+      const statusKey = String(rc._id).toLowerCase();
+      statusCounts[statusKey] = rc.count;
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        products,
+        statusCounts,
+        pagination: {
+          totalItems,
+          totalPages,
+          currentPage: Number(page),
+          pageSize: Number(limit),
+          hasNextPage: Number(page) < totalPages,
+          hasPrevPage: Number(page) > 1
+        }
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Admin list all orders: GET /api/v1/admin/orders
+export const getadminOrders = async (req: Request, res: Response) => {
+  try {
+    const { status, search, page = 1, limit = 10 } = req.query;
+    const query: any = {};
+
+    if (status && status !== 'all' && status !== 'All Status') {
+      query.status = status;
+    }
+    
+    if (search) {
+      if (mongoose.Types.ObjectId.isValid(String(search))) {
+         query._id = search;
+      }
+    }
+
+    const skipIndex = (Number(page) - 1) * Number(limit);
+    const totalItems = await Order.countDocuments(query);
+    
+    const orders = await Order.find(query)
+      .populate('products.product')
+      .populate('renter', 'name email phone profile_image')
+      .populate('lender', 'name email phone profile_image')
+      .skip(skipIndex)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    const totalPages = Math.ceil(totalItems / Number(limit));
+
+    const statusCounts = { all: totalItems, pending: 0, confirmed: 0, shipped: 0, delivered: 0, completed: 0, cancelled: 0 };
+    const rawCounts = await Order.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    rawCounts.forEach((rc) => {
+      const sKey = String(rc._id).toLowerCase() as keyof typeof statusCounts;
+      if (statusCounts[sKey] !== undefined) statusCounts[sKey] = rc.count;
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        orders,
+        statusSummary: statusCounts,
+        pagination: {
+          totalItems,
+          totalPages,
+          currentPage: Number(page),
+          pageSize: Number(limit),
+          hasNextPage: Number(page) < totalPages,
+          hasPrevPage: Number(page) > 1
+        }
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

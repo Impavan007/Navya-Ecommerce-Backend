@@ -11,7 +11,9 @@ import {
   moderateWaitlist,
   bulkModerateWaitlists,
   getadminPayoutStats,
-  getadminPayouts
+  getadminPayouts,
+  getadminListings,
+  getadminOrders
 } from '../controllers/adminController';
 import { authMiddleware } from '../middleware/auth';
 
@@ -35,5 +37,8 @@ router.post('/admin/waitlists/bulk/action', authMiddleware, bulkModerateWaitlist
 
 router.get('/admin/payouts/stats/dashboard', authMiddleware, getadminPayoutStats);
 router.get('/admin/payouts', authMiddleware, getadminPayouts);
+
+router.get('/admin/listings', authMiddleware, getadminListings);
+router.get('/admin/orders', authMiddleware, getadminOrders);
 
 export default router;
