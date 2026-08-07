@@ -19,7 +19,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       sizes,
       sort,
       q,
-      occasion,
+      fabric,
       top_lenders,
       available
     } = req.query;
@@ -68,27 +68,9 @@ export const getAllProducts = async (req: Request, res: Response) => {
       }
     }
 
-    if (occasion) {
-      const occasionStr = String(occasion).toLowerCase();
-      let dbOccasions: string[] = [];
-
-      if (occasionStr.includes('wedding')) {
-        dbOccasions = ['wedding'];
-      } else if (occasionStr.includes('party')) {
-        dbOccasions = ['party', 'cocktail'];
-      } else if (occasionStr.includes('formal') || occasionStr.includes('office') || occasionStr.includes('work')) {
-        dbOccasions = ['formal'];
-      } else if (occasionStr.includes('everyday') || occasionStr.includes('vacation') || occasionStr.includes('holiday') || occasionStr.includes('casual')) {
-        dbOccasions = ['casual'];
-      } else if (occasionStr.includes('special') || occasionStr.includes('festive') || occasionStr.includes('cocktail')) {
-        dbOccasions = ['festive', 'cocktail', 'party', 'wedding'];
-      } else {
-        dbOccasions = [occasionStr];
-      }
-
-      if (dbOccasions.length > 0) {
-        query.occasion = { $in: dbOccasions.map(o => new RegExp(`^${o}$`, 'i')) };
-      }
+    if (fabric) {
+      const fabricStr = String(fabric).toLowerCase();
+      query.fabric = { $regex: fabricStr, $options: 'i' };
     }
 
     if (top_lenders === 'true') {
@@ -380,7 +362,7 @@ export const saveListingStep = async (req: AuthRequest, res: Response) => {
 
     if (stepNum === 1) {
       // Step 1: Basic Info
-      const { name, category, sub_category, occasion, size, brand, quantity, description, price, rental_price_per_day } = req.body;
+      const { name, category, sub_category, fabric, size, brand, quantity, description, price, rental_price_per_day } = req.body;
 
       // Get category or default
       let categoryId = category;
@@ -402,7 +384,7 @@ export const saveListingStep = async (req: AuthRequest, res: Response) => {
         name: name || 'Untitled Product',
         description: description || '',
         brand: brand || 'Generic',
-        occasion: occasion || 'Casual',
+        fabric: fabric || 'Cotton',
         size: Array.isArray(size) ? size : [size || 'M'],
         price: targetPrice,
         rental_price_per_day: targetPrice,
@@ -478,12 +460,12 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
-    const { name, brand, description, category, sub_category, subcategory, occasion, size, rental_price_per_day, quantity } = req.body;
+    const { name, brand, description, category, sub_category, subcategory, fabric, size, rental_price_per_day, quantity } = req.body;
 
     if (name) product.name = name;
     if (brand) product.brand = brand;
     if (description) product.description = description;
-    if (occasion) product.occasion = occasion;
+    if (fabric) product.fabric = fabric;
     if (size) product.size = Array.isArray(size) ? size : JSON.parse(size);
     if (quantity) product.quantity = Number(quantity);
 
