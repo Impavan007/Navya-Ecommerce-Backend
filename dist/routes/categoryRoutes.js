@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const categoryController_1 = require("../controllers/categoryController");
+const auth_1 = require("../middleware/auth");
+const router = (0, express_1.Router)();
+router.get('/categories', categoryController_1.getCategories);
+router.get('/categories/:categoryId/sub-categories', categoryController_1.getSubCategories);
+router.post('/categories', auth_1.authMiddleware, categoryController_1.createCategory);
+exports.default = router;
