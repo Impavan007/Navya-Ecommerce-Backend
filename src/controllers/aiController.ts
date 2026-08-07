@@ -3,7 +3,6 @@ import axios from 'axios';
 import { OLLAMA_CONFIG } from '../config/ollama';
 import Product from '../models/Product';
 
-const occasionsList = ['wedding', 'birthday', 'party', 'formal', 'casual', 'meeting', 'date', 'cocktail', 'office'];
 const fabricsList = ['silk', 'linen', 'cotton', 'velvet', 'tweed', 'satin', 'wool', 'denim', 'leather', 'lace'];
 const colorsList = ['blue', 'red', 'green', 'black', 'white', 'gold', 'silver', 'pink', 'yellow', 'purple', 'beige', 'grey', 'orange', 'emerald'];
 const brandsList = ['gucci', 'prada', 'chanel', 'zara', 'navyaa select', 'dior', 'louis vuitton', 'hermes', 'versace'];
@@ -12,12 +11,11 @@ const brandsList = ['gucci', 'prada', 'chanel', 'zara', 'navyaa select', 'dior',
 function extractKeywords(text: string) {
   const lowercaseText = text.toLowerCase();
   
-  const occasion = occasionsList.find(o => lowercaseText.includes(o));
   const fabric = fabricsList.find(f => lowercaseText.includes(f));
   const color = colorsList.find(c => lowercaseText.includes(c));
   const brand = brandsList.find(b => lowercaseText.includes(b));
   
-  return { occasion, fabric, color, brand };
+  return { fabric, color, brand };
 }
 
 export const handleStylistChat = async (req: Request, res: Response) => {
@@ -30,14 +28,11 @@ export const handleStylistChat = async (req: Request, res: Response) => {
     }
 
     // 1. Dynamic Catalog Filtering (RAG) based on user prompt keywords
-    const { occasion, fabric, color, brand } = extractKeywords(message);
-    console.log(`🔍 AI Stylist detected criteria: Occasion=${occasion || 'none'}, Fabric=${fabric || 'none'}, Color=${color || 'none'}, Brand=${brand || 'none'}`);
+    const { fabric, color, brand } = extractKeywords(message);
+    console.log(`🔍 AI Stylist detected criteria: Fabric=${fabric || 'none'}, Color=${color || 'none'}, Brand=${brand || 'none'}`);
 
     const query: any = { status: 'Active' };
     
-    if (occasion) {
-      query.occasion = { $regex: occasion, $options: 'i' };
-    }
     if (brand) {
       query.brand = { $regex: brand, $options: 'i' };
     }

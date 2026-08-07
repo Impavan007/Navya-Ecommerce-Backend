@@ -10,7 +10,7 @@ export interface IProduct extends Document<string> {
   name: string;
   description: string;
   brand: string;
-  occasion?: string;
+  fabric?: string;
   size: string[];
   price: number; // e-commerce purchase price
   rental_price_per_day: number; // compatible alias
@@ -38,7 +38,7 @@ const ProductSchema = new Schema<IProduct>({
   name: { type: String, required: true },
   description: { type: String, required: true },
   brand: { type: String, required: true },
-  occasion: { type: String, default: 'Casual' },
+  fabric: { type: String, default: 'Cotton' },
   size: [{ type: String }],
   price: { type: Number, required: true },
   rental_price_per_day: { type: Number },
