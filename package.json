@@ -4,9 +4,9 @@
   "description": "Express + MongoDB Backend for E-Commerce MVP",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "dev": "node init && ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "node init && tsc",
+    "start": "node init && node dist/server.js",
     "seed": "ts-node src/seed.ts"
   },
   "dependencies": {
